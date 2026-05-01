@@ -1,1 +1,26 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CounterMeasure | Vindex Network</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-overlay"></div>
+    
+    <div class="splash-container" id="splash-container">
+        <img src="vinnet-512.jpg" alt="Vindex Network Shield" class="vn-logo">
+        
+        <h1 class="app-title">CounterMeasure</h1>
+        <p class="motto">The burden is theirs. Make them carry it.</p>
+        
+        <div class="terminal-loader">
+            <span id="terminal-text"></span><span class="cursor"></span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
