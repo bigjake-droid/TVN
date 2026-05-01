@@ -7,16 +7,15 @@
 
 body, html {
     height: 100%;
-    background-color: #050505; /* Deep, almost black abyss */
-    font-family: 'Courier New', Courier, monospace; /* Terminal vibe */
+    background-color: #050505; 
+    font-family: 'Courier New', Courier, monospace; 
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    color: #d1d5db; /* Light silver */
+    color: #d1d5db; 
 }
 
-/* Radial gradient overlay for depth */
 .background-overlay {
     position: absolute;
     top: 0;
@@ -38,59 +37,58 @@ body, html {
     transform: translateY(20px);
     animation: fadeIn 1.5s ease-out forwards;
     transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    width: 100%;
+    padding: 0 15px; /* Keeps text off the absolute edges of the screen */
 }
 
-/* Class triggered by JS to transition out of splash screen */
 .splash-container.fade-out {
     opacity: 0;
     transform: scale(0.95);
 }
 
-/* The Official Logo Styling */
 .vn-logo {
-    width: 180px; /* Adjust size if needed */
+    width: clamp(120px, 30vw, 180px); /* Scales logo slightly on mobile */
     height: auto;
     margin-bottom: 1.5rem;
-    border-radius: 12px; /* Smooths the hard corners of the JPEG */
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8); /* Grounds the image in the dark background */
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8); 
 }
 
-/* Main App Title */
 .app-title {
-    font-size: 2.8rem;
+    /* Fluid typography: Min 1.5rem, scales with view width, Max 2.8rem */
+    font-size: clamp(1.5rem, 8vw, 2.8rem);
     font-weight: 900;
-    letter-spacing: 0.5rem;
+    letter-spacing: clamp(0.2rem, 2vw, 0.5rem); /* Shrinks spacing on mobile */
     text-transform: uppercase;
     font-family: 'Arial', sans-serif;
     color: #ffffff;
     margin-bottom: 0.5rem;
+    width: 100%;
 }
 
-/* The Motto */
 .motto {
-    font-size: 0.9rem;
-    letter-spacing: 0.25rem;
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+    letter-spacing: clamp(0.1rem, 1vw, 0.25rem);
     color: #8c8c8c;
     text-transform: uppercase;
     margin-bottom: 3.5rem;
     font-weight: 600;
 }
 
-/* Simulated Terminal Loader */
 .terminal-loader {
     font-size: 1rem;
     color: #a3a3a3;
-    text-align: left;
+    text-align: center;
     width: 100%;
     max-width: 320px;
     border-top: 1px solid #333;
     padding-top: 1rem;
     display: flex;
+    justify-content: center; /* Centers the terminal text */
     align-items: center;
-    min-height: 40px; /* Keeps layout stable before text types */
+    min-height: 40px; 
 }
 
-/* Blinking Cursor (The Crimson Kill-Switch) */
 .cursor {
     display: inline-block;
     width: 10px;
@@ -100,7 +98,33 @@ body, html {
     animation: blink 1s step-end infinite;
 }
 
-/* Keyframes */
+/* Tactical Button Styling */
+.tactical-btn {
+    margin-top: 2rem;
+    padding: 12px 35px;
+    background-color: transparent;
+    border: 1px solid #4a4a4a;
+    color: #ffffff;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    letter-spacing: 0.2rem;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    opacity: 1;
+}
+
+.tactical-btn:hover, .tactical-btn:active {
+    border-color: #d32f2f; /* Crimson activation */
+    background-color: rgba(211, 47, 47, 0.1);
+    box-shadow: 0 0 15px rgba(211, 47, 47, 0.3);
+}
+
+.tactical-btn.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+}
+
 @keyframes fadeIn {
     to { opacity: 1; transform: translateY(0); }
 }
