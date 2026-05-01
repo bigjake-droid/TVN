@@ -3,388 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Vindex | Command Center</title>
+    <title>Project Vindex | Core Access</title>
     <style>
-        /* Base Reset & Variables */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --bg-dark: #030507;
-            --border-dim: #1a2b3c;
-            --border-active: #d4af37; /* Vox Dei Gold */
-            --text-dim: #4a6b8c;
-            --text-main: #8c9b9d;
-            --accent-red: #d32f2f;
-            --accent-green: #00ff00;
-        }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background-color: #030507;
+            color: #8c9b9d;
             font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             height: 100vh;
             overflow: hidden;
-            display: flex;
             position: relative;
         }
 
-        /* The Canvas Background (Agent Activity Map) */
-        #radar-map {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1; /* Sits behind everything */
-            pointer-events: none; /* Allows you to click through it */
-        }
-
-        /* CRT Scanline Effect */
+        /* CRT Scanline Effect Overlay */
         body::after {
             content: " ";
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 100;
+            z-index: 10;
             background-size: 100% 2px, 3px 100%;
             pointer-events: none;
         }
 
-        /* Layout Structure */
-        .sidebar {
-            width: 250px;
-            border-right: 1px solid var(--border-dim);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-            background: rgba(3, 5, 7, 0.85);
-            backdrop-filter: blur(5px);
-        }
+        /* Layer Management */
+        .active-layer { display: flex; flex-direction: column; align-items: center; z-index: 5; animation: fadeIn 1s ease-in forwards; width: 100%; padding: 20px;}
+        .hidden-layer { display: none; }
+        .fade-out { animation: fadeOut 0.5s ease-out forwards; }
 
-        .main-panel {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-            padding: 20px;
-            overflow-y: auto; /* Allows scrolling on smaller screens */
-        }
-
-        /* Animated Logo */
-        .brand {
-            margin-bottom: 40px;
+        /* Splash Screen Elements */
+        .terminal-loader {
+            font-size: clamp(0.9rem, 4vw, 1.2rem);
+            color: #a3a3a3;
+            margin-bottom: 2rem;
+            min-height: 30px;
             text-align: center;
         }
+        .cursor { display: inline-block; width: 10px; height: 18px; background-color: #d32f2f; margin-left: 6px; animation: blink 1s step-end infinite; }
+        .tactical-btn {
+            padding: 12px 35px; background: transparent; border: 1px solid #4a4a4a; color: #fff; font-family: 'Courier New', Courier, monospace; font-size: 1rem; letter-spacing: 0.2rem; cursor: pointer; transition: all 0.3s;
+        }
+        .tactical-btn:hover { border-color: #d32f2f; color: #d32f2f; box-shadow: 0 0 15px rgba(211, 47, 47, 0.3); }
+        .hidden { opacity: 0; pointer-events: none; }
+
+        /* Auth Terminal Box */
+        .auth-terminal {
+            width: 100%; max-width: 450px; padding: 40px 30px; border: 1px solid #1a2b3c; background: rgba(5, 10, 15, 0.85); box-shadow: 0 0 30px rgba(0, 0, 0, 0.9); position: relative; z-index: 5; backdrop-filter: blur(5px);
+        }
+        .classification { font-size: 0.75rem; letter-spacing: 0.2rem; color: #d32f2f; margin-bottom: 30px; text-align: center; text-transform: uppercase; }
         
-        .brand h1 {
-            font-family: 'Times New Roman', Times, serif;
-            color: #e0e0e0;
-            letter-spacing: 0.3rem;
-            font-weight: normal;
-            animation: pulse-glow 3s infinite alternate; /* The animation trigger */
+        /* Animated Roman Header */
+        .roman-header { text-align: center; margin-bottom: 30px; }
+        .roman-header h1 { 
+            font-family: 'Times New Roman', Times, serif; font-size: clamp(2.5rem, 8vw, 3rem); font-weight: normal; color: #e0e0e0; letter-spacing: 0.5rem; margin-bottom: 10px; 
+            animation: pulse-glow 3s infinite alternate;
         }
-        
-        .brand p { font-size: 0.7rem; color: var(--border-active); letter-spacing: 0.2rem; }
+        .roman-header p { font-size: 0.75rem; letter-spacing: 0.3rem; color: #5a6b7c; }
 
-        @keyframes pulse-glow {
-            0% { text-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
-            100% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.8); color: #fff; }
+        /* Form Elements */
+        .hidden-form { display: none; }
+        .input-block { margin-bottom: 25px; }
+        .input-block label { display: block; font-size: 0.75rem; letter-spacing: 0.15rem; margin-bottom: 8px; color: #4a6b8c; text-align: center;}
+        .input-block input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #2a3b4c; color: #fff; font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; padding: 10px 5px; outline: none; text-align: center; letter-spacing: 0.2rem; transition: 0.3s; }
+        .input-block input:focus { border-bottom: 1px solid #d4af37; }
+
+        /* Buttons */
+        .auth-btn, .submit-btn, .back-btn {
+            width: 100%; background: transparent; border: 1px solid #2a3b4c; color: #8c9b9d; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; letter-spacing: 0.2rem; padding: 15px; cursor: pointer; margin-top: 15px; transition: 0.3s; text-transform: uppercase;
         }
+        .auth-btn:hover, .submit-btn:hover { border-color: #e0e0e0; color: #030507; background: #e0e0e0; }
+        .form-actions { display: flex; gap: 10px; }
+        .back-btn { width: 30%; border-color: #4a4a4a; color: #4a4a4a; }
+        .back-btn:hover { border-color: #d32f2f; color: #d32f2f; }
+        .submit-btn { width: 70%; }
 
-        .nav-label { font-size: 0.7rem; color: var(--text-dim); margin-bottom: 10px; letter-spacing: 0.1rem; }
+        .error-text { color: #d32f2f; font-size: 0.8rem; text-align: center; margin-top: 15px; min-height: 20px;}
 
-        .nav-item {
-            padding: 15px 10px;
-            border: 1px solid transparent;
-            color: var(--text-main);
-            cursor: pointer;
-            margin-bottom: 10px;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.1rem;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            border-color: var(--border-dim);
-            background: rgba(26, 43, 60, 0.2);
-            color: #fff;
-            border-left: 3px solid var(--border-active);
-        }
-
-        /* Top Global HUD */
-        .top-hud {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-dim);
-            margin-bottom: 20px;
-        }
-
-        .hud-stat { font-size: 0.8rem; letter-spacing: 0.1rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;}
-        .status-dot { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green);}
-
-        /* Bento Box Grid - DESKTOP */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: minmax(180px, auto);
-            gap: 20px;
-        }
-
-        .module-card {
-            background: rgba(10, 15, 20, 0.6);
-            border: 1px solid var(--border-dim);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(3px);
-        }
-
-        .module-card:hover {
-            border-color: var(--border-active);
-            box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.05);
-            transform: translateY(-2px);
-            background: rgba(15, 20, 25, 0.8);
-        }
-
-        /* Desktop Spans */
-        .card-large { grid-column: span 2; grid-row: span 2; } 
-        .card-wide { grid-column: span 2; grid-row: span 1; }  
-        .card-tall { grid-column: span 1; grid-row: span 2; }  
-        .card-standard { grid-column: span 1; grid-row: span 1; } 
-
-        /* Card Interiors */
-        .module-header { font-size: 0.85rem; color: var(--border-active); letter-spacing: 0.2rem; margin-bottom: 15px;}
-        .module-title { font-family: 'Times New Roman', serif; font-size: clamp(1.2rem, 3vw, 1.8rem); color: #fff; margin-bottom: 10px; font-weight: normal; letter-spacing: 0.1rem;}
-        .module-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
-        
-        .action-arrow { font-size: 1.2rem; color: var(--border-dim); align-self: flex-end; transition: color 0.3s; margin-top: 10px;}
-        .module-card:hover .action-arrow { color: var(--border-active); }
-
-        .kill-switch:hover { border-color: var(--accent-red); box-shadow: inset 0 0 20px rgba(211, 47, 47, 0.1);}
-        .kill-switch:hover .module-header, .kill-switch:hover .action-arrow { color: var(--accent-red); }
-
-        /* =========================================
-           MOBILE RESPONSIVE OVERRIDE (THE FIX)
-           ========================================= */
-        @media (max-width: 900px) {
-            body { 
-                flex-direction: column; /* Stacks sidebar and main panel vertically */
-                height: auto; 
-                min-height: 100vh;
-                overflow-y: auto; 
-            }
-            
-            .sidebar { 
-                width: 100%; 
-                border-right: none; 
-                border-bottom: 1px solid var(--border-dim); 
-                padding: 15px; 
-            }
-
-            .brand { margin-bottom: 15px; }
-            .brand h1 { font-size: 2rem; }
-            
-            /* Converts nav menu into a horizontal strip on mobile */
-            .nav-item { display: inline-block; padding: 10px; margin: 0 5px 5px 0; font-size: 0.75rem; }
-            
-            .main-panel { padding: 10px; overflow-y: visible; }
-
-            /* Destroys the grid spans so everything stacks perfectly */
-            .bento-grid { 
-                display: flex; 
-                flex-direction: column; 
-                gap: 15px; 
-            }
-            
-            /* Forces all cards to behave normally */
-            .card-large, .card-wide, .card-tall, .card-standard { 
-                width: 100%; 
-                min-height: 150px; 
-            }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes pulse-glow { 0% { text-shadow: 0 0 5px rgba(212, 175, 55, 0.2); } 100% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.8); color: #fff; } }
     </style>
 </head>
 <body>
 
-    <canvas id="radar-map"></canvas>
-
-    <aside class="sidebar">
-        <div class="brand">
-            <h1>VOX DEI</h1>
-            <p>VINDEX NETWORK</p>
+    <div id="splash-layer" class="active-layer">
+        <div class="classification">[ RESTRICTED // VINDEX_NETWORK ]</div>
+        <div class="terminal-loader">
+            <span id="terminal-text"></span><span class="cursor"></span>
         </div>
+        <button id="initialize-btn" class="tactical-btn hidden">> INITIALIZE</button>
+    </div>
 
-        <div class="nav-label">[ THEATERS ]</div>
-        <div>
-            <div class="nav-item active">> ALPHA</div>
-            <div class="nav-item">> BRAVO</div>
-            <div class="nav-item">> ARCHIVE</div>
+    <div id="auth-layer" class="hidden-layer">
+        <div class="auth-terminal">
+            <div class="classification">[ NSA_CORE_ACCESS_LOG ]</div>
+
+            <div class="roman-header">
+                <h1>VOX DEI</h1>
+                <p>VERITAS . LIBERTAS . IUSTITIA</p>
+            </div>
+
+            <div id="auth-selection">
+                <button id="btn-login" class="auth-btn">> LOG IN</button>
+                <button id="btn-new-candidate" class="auth-btn">> NEW CANDIDATE</button>
+            </div>
+
+            <form id="login-form" class="hidden-form">
+                <div class="input-block">
+                    <label>[ IDENTITY_NODE ]</label>
+                    <input type="text" id="login-user" autocomplete="off" required>
+                </div>
+                <div class="input-block">
+                    <label>[ PASSPHRASE ]</label>
+                    <input type="password" id="login-pass" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="back-btn">< BACK</button>
+                    <button type="submit" class="submit-btn">> AUTHENTICATE</button>
+                </div>
+                <div id="login-error" class="error-text"></div>
+            </form>
+
+            <form id="register-form" class="hidden-form">
+                <div class="input-block">
+                    <label>[ NEW_IDENTITY_NODE ]</label>
+                    <input type="text" id="reg-user" autocomplete="off" required>
+                </div>
+                <div class="input-block">
+                    <label>[ PASSPHRASE ]</label>
+                    <input type="password" id="reg-pass" required>
+                </div>
+                <div class="input-block">
+                    <label>[ VERIFY_PASSPHRASE ]</label>
+                    <input type="password" id="reg-pass-verify" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="back-btn">< BACK</button>
+                    <button type="submit" class="submit-btn">> ENCRYPT & STORE</button>
+                </div>
+                <div id="reg-error" class="error-text"></div>
+            </form>
         </div>
-        
-        <div style="flex-grow: 1;"></div> 
-        
-        <div class="nav-item" style="color: var(--accent-red); font-size: 0.7rem; border: none;">[ DISCONNECT ]</div>
-    </aside>
-
-    <main class="main-panel">
-        
-        <header class="top-hud">
-            <div class="hud-stat">
-                <div class="status-dot"></div>
-                <span id="user-display">OP: UNAUTHORIZED</span>
-            </div>
-            <div class="hud-stat" style="color: var(--text-dim);">
-                [ UPLINK: SECURE ] | <span id="time-display">00:00:00</span>
-            </div>
-        </header>
-
-        <div class="bento-grid">
-            
-            <div class="module-card card-large">
-                <div>
-                    <div class="module-header">[ PRIMARY OFFENSE ]</div>
-                    <div class="module-title">PROVE_IT ENGINE</div>
-                    <div class="module-desc">Motion generation and Factual Impossibility builder. Audit chain of custody. Cross-reference sworn testimony against physical evidence records.</div>
-                </div>
-                <div class="action-arrow">→</div>
-            </div>
-
-            <div class="module-card card-wide">
-                <div>
-                    <div class="module-header">[ DAMAGE METRICS ]</div>
-                    <div class="module-title">ECONOMIC LEDGER</div>
-                    <div class="module-desc">Real-time quantification of civil damages. Tracks lost wages, seized property, and operational costs.</div>
-                </div>
-                <div class="action-arrow">→</div>
-            </div>
-
-            <div class="module-card card-tall">
-                <div>
-                    <div class="module-header">[ DOCTRINE ]</div>
-                    <div class="module-title">VINDEX F.M.</div>
-                    <div class="module-desc">Standard operating procedures for pro se defense. Case law library and statute auditing.</div>
-                </div>
-                <div class="action-arrow">→</div>
-            </div>
-
-            <div class="module-card card-standard kill-switch">
-                <div>
-                    <div class="module-header">[ TACTICAL INVERT ]</div>
-                    <div class="module-title">ARBITRATION</div>
-                </div>
-                <div class="action-arrow">→</div>
-            </div>
-
-            <div class="module-card card-standard">
-                <div>
-                    <div class="module-header">[ 18 U.S.C. § 242 ]</div>
-                    <div class="module-title">COLOR OF LAW</div>
-                </div>
-                <div class="action-arrow">→</div>
-            </div>
-
-        </div>
-    </main>
+    </div>
 
     <script>
-        // --------------------------------------------------------
-        // 1. DATA & CLOCK LOGIC
-        // --------------------------------------------------------
         document.addEventListener("DOMContentLoaded", () => {
-            const savedUser = localStorage.getItem("vindex_user");
-            if (savedUser) {
-                document.getElementById("user-display").textContent = "OP: " + savedUser.toUpperCase();
+            const terminalText = document.getElementById("terminal-text");
+            const initBtn = document.getElementById("initialize-btn");
+            const splashLayer = document.getElementById("splash-layer");
+            const authLayer = document.getElementById("auth-layer");
+
+            const authSelection = document.getElementById("auth-selection");
+            const loginForm = document.getElementById("login-form");
+            const registerForm = document.getElementById("register-form");
+            
+            const bootSequence = "> FETCHING ENCRYPTED PAYLOAD...";
+            let index = 0;
+            
+            function typeText() {
+                if (index < bootSequence.length) {
+                    terminalText.textContent += bootSequence.charAt(index);
+                    index++;
+                    setTimeout(typeText, 40);
+                } else {
+                    setTimeout(() => {
+                        terminalText.textContent = "> PAYLOAD SECURED. SYSTEM READY.";
+                        initBtn.classList.remove("hidden");
+                    }, 500);
+                }
+            }
+            setTimeout(typeText, 800);
+
+            initBtn.addEventListener("click", () => {
+                splashLayer.classList.add("fade-out");
+                setTimeout(() => {
+                    splashLayer.classList.replace("active-layer", "hidden-layer");
+                    authLayer.classList.replace("hidden-layer", "active-layer");
+                    
+                    if (localStorage.getItem("vindex_user")) {
+                        showLoginForm();
+                    }
+                }, 500);
+            });
+
+            document.getElementById("btn-login").addEventListener("click", showLoginForm);
+            document.getElementById("btn-new-candidate").addEventListener("click", showRegisterForm);
+            
+            document.querySelectorAll(".back-btn").forEach(btn => {
+                btn.addEventListener("click", resetAuthUI);
+            });
+
+            function showLoginForm() {
+                authSelection.style.display = "none";
+                loginForm.style.display = "block";
+                registerForm.style.display = "none";
+                const savedUser = localStorage.getItem("vindex_user");
+                if(savedUser) document.getElementById("login-user").value = savedUser;
             }
 
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById("time-display").textContent = now.toLocaleTimeString('en-US', { hour12: false });
-            }, 1000);
-        });
+            function showRegisterForm() {
+                authSelection.style.display = "none";
+                loginForm.style.display = "none";
+                registerForm.style.display = "block";
+            }
 
-        // --------------------------------------------------------
-        // 2. GLOBAL AGENT RADAR SYSTEM (CANVAS MAP BACKGROUND)
-        // --------------------------------------------------------
-        const canvas = document.getElementById('radar-map');
-        const ctx = canvas.getContext('2d');
-        
-        let width, height;
-        const agents = [];
+            function resetAuthUI() {
+                authSelection.style.display = "block";
+                loginForm.style.display = "none";
+                registerForm.style.display = "none";
+                document.getElementById("login-error").textContent = "";
+                document.getElementById("reg-error").textContent = "";
+            }
 
-        function resizeCanvas() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        }
-        
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+            registerForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const user = document.getElementById("reg-user").value;
+                const pass1 = document.getElementById("reg-pass").value;
+                const pass2 = document.getElementById("reg-pass-verify").value;
+                const errorText = document.getElementById("reg-error");
 
-        // Spawns a new active "ping" on the map
-        function spawnAgent() {
-            agents.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                radius: 0,
-                maxRadius: Math.random() * 40 + 20, // How big the ping gets
-                alpha: 1 // Starting opacity
-            });
-            // Randomize next spawn time between 500ms and 2.5s
-            setTimeout(spawnAgent, Math.random() * 2000 + 500); 
-        }
+                if (pass1 !== pass2) {
+                    errorText.textContent = "[!] PASSPHRASES DO NOT MATCH";
+                    return;
+                }
 
-        function drawMap() {
-            // Clear frame
-            ctx.clearRect(0, 0, width, height);
-
-            // Draw faint tactical Lat/Lng Grid
-            ctx.strokeStyle = 'rgba(26, 43, 60, 0.15)'; // Very faint blue grid
-            ctx.lineWidth = 1;
-            for(let i = 0; i < width; i += 80) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke(); }
-            for(let i = 0; i < height; i += 80) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke(); }
-
-            // Draw expanding agent pings
-            agents.forEach((agent, index) => {
-                // Expanding outer ring
-                ctx.beginPath();
-                ctx.arc(agent.x, agent.y, agent.radius, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(212, 175, 55, ${agent.alpha})`; // Vox Dei Gold
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
+                localStorage.setItem("vindex_user", user);
+                localStorage.setItem("vindex_pass", pass1); 
                 
-                // Solid inner core
-                ctx.beginPath();
-                ctx.arc(agent.x, agent.y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(212, 175, 55, ${agent.alpha})`;
-                ctx.fill();
+                const submitBtn = registerForm.querySelector(".submit-btn");
+                submitBtn.textContent = "> ENCRYPTING...";
+                submitBtn.style.color = "#00ff00";
 
-                // Animate expansion and fade out
-                agent.radius += 0.4;
-                agent.alpha -= 0.008;
+                setTimeout(() => {
+                    window.location.href = "command-center.html";
+                }, 1000);
+            });
 
-                // Remove dead pings to save memory
-                if (agent.alpha <= 0) {
-                    agents.splice(index, 1);
+            loginForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const user = document.getElementById("login-user").value;
+                const pass = document.getElementById("login-pass").value;
+                const errorText = document.getElementById("login-error");
+
+                const savedUser = localStorage.getItem("vindex_user");
+                const savedPass = localStorage.getItem("vindex_pass");
+
+                if (!savedUser) {
+                    errorText.textContent = "[!] NO CANDIDATE RECORD FOUND";
+                    return;
+                }
+
+                if (user === savedUser && pass === savedPass) {
+                    const submitBtn = loginForm.querySelector(".submit-btn");
+                    submitBtn.textContent = "> ACCESS GRANTED";
+                    submitBtn.style.color = "#00ff00";
+                    
+                    setTimeout(() => {
+                        window.location.href = "command-center.html";
+                    }, 1000);
+                } else {
+                    errorText.textContent = "[!] INVALID CREDENTIALS";
                 }
             });
-
-            requestAnimationFrame(drawMap);
-        }
-
-        // Initialize Tracker
-        spawnAgent();
-        drawMap();
+        });
     </script>
 </body>
 </html>
