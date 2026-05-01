@@ -3,23 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CounterMeasure | Vindex Network</title>
+    <title>Project Vindex | Core Access</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="background-overlay"></div>
-    
-    <div class="splash-container" id="splash-container">
-        <img src="vinnet-512.jpg" alt="Vindex Network Shield" class="vn-logo">
-        
-        <h1 class="app-title">CounterMeasure</h1>
-        <p class="motto">The burden is theirs. Make them carry it.</p>
-        
+
+    <div class="vn-bg-watermark"></div>
+
+    <div id="splash-layer" class="active-layer">
+        <div class="classification">[ RESTRICTED // VINDEX_NETWORK ]</div>
         <div class="terminal-loader">
             <span id="terminal-text"></span><span class="cursor"></span>
         </div>
+        <button id="initialize-btn" class="tactical-btn hidden">> INITIALIZE</button>
+    </div>
 
-        <button id="initialize-btn" class="tactical-btn hidden">INITIALIZE</button>
+    <div id="auth-layer" class="hidden-layer">
+        <div class="auth-terminal">
+            <div class="classification">[ NSA_CORE_ACCESS_LOG ]</div>
+
+            <div class="roman-header">
+                <h1>VOX DEI</h1>
+                <p>VERITAS . LIBERTAS . IUSTITIA</p>
+            </div>
+
+            <div id="auth-selection">
+                <button id="btn-login" class="auth-btn">> LOG IN</button>
+                <button id="btn-new-candidate" class="auth-btn">> NEW CANDIDATE</button>
+            </div>
+
+            <form id="login-form" class="hidden-form">
+                <div class="input-block">
+                    <label>[ IDENTITY_NODE ]</label>
+                    <input type="text" id="login-user" autocomplete="off" required>
+                </div>
+                <div class="input-block">
+                    <label>[ PASSPHRASE ]</label>
+                    <input type="password" id="login-pass" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="back-btn">< BACK</button>
+                    <button type="submit" class="submit-btn">> AUTHENTICATE</button>
+                </div>
+                <div id="login-error" class="error-text"></div>
+            </form>
+
+            <form id="register-form" class="hidden-form">
+                <div class="input-block">
+                    <label>[ NEW_IDENTITY_NODE ]</label>
+                    <input type="text" id="reg-user" autocomplete="off" required>
+                </div>
+                <div class="input-block">
+                    <label>[ PASSPHRASE ]</label>
+                    <input type="password" id="reg-pass" required>
+                </div>
+                <div class="input-block">
+                    <label>[ VERIFY_PASSPHRASE ]</label>
+                    <input type="password" id="reg-pass-verify" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="back-btn">< BACK</button>
+                    <button type="submit" class="submit-btn">> ENCRYPT & STORE</button>
+                </div>
+                <div id="reg-error" class="error-text"></div>
+            </form>
+        </div>
     </div>
 
     <script src="script.js"></script>
