@@ -3,73 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Vindex | Core Access</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Project Vindex | Command Center</title>
+    <style>
+        /* Base Reset & Variables */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-dark: #030507;
+            --border-dim: #1a2b3c;
+            --border-active: #d4af37; /* Vox Dei Gold */
+            --text-dim: #4a6b8c;
+            --text-main: #8c9b9d;
+            --accent-red: #d32f2f;
+            --accent-green: #00ff00;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Courier New', Courier, monospace;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* CRT Scanline Effect */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* Layout Structure */
+        .sidebar {
+            width: 250px;
+            border-right: 1px solid var(--border-dim);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            background: rgba(3, 5, 7, 0.9);
+        }
+
+        .main-panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            padding: 20px;
+        }
+
+        /* Sidebar Elements */
+        .brand {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .brand h1 {
+            font-family: 'Times New Roman', Times, serif;
+            color: #e0e0e0;
+            letter-spacing: 0.3rem;
+            font-weight: normal;
+        }
+        .brand p { font-size: 0.7rem; color: var(--border-active); letter-spacing: 0.2rem; }
+
+        .nav-label {
+            font-size: 0.7rem; color: var(--text-dim); margin-bottom: 10px; letter-spacing: 0.1rem;
+        }
+
+        .nav-item {
+            padding: 15px 10px;
+            border: 1px solid transparent;
+            color: var(--text-main);
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.1rem;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            border-color: var(--border-dim);
+            background: rgba(26, 43, 60, 0.2);
+            color: #fff;
+            border-left: 3px solid var(--border-active);
+        }
+
+        /* Top Global HUD */
+        .top-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-dim);
+            margin-bottom: 20px;
+        }
+
+        .hud-stat { font-size: 0.8rem; letter-spacing: 0.1rem; display: flex; align-items: center; gap: 10px;}
+        .status-dot { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green);}
+
+        /* Bento Box Grid (The Specialized Layout) */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: 200px;
+            gap: 20px;
+            flex-grow: 1;
+        }
+
+        .module-card {
+            background: rgba(10, 15, 20, 0.5);
+            border: 1px solid var(--border-dim);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            border-color: var(--border-active);
+            box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* Dynamic Grid Spanning */
+        .card-large { grid-column: span 2; grid-row: span 2; } /* Massive focus area */
+        .card-wide { grid-column: span 2; grid-row: span 1; }  /* Horizontal data stream */
+        .card-tall { grid-column: span 1; grid-row: span 2; }  /* Vertical list */
+        .card-standard { grid-column: span 1; grid-row: span 1; } /* Standard tool slot */
+
+        /* Card Interiors */
+        .module-header { font-size: 0.85rem; color: var(--border-active); letter-spacing: 0.2rem; margin-bottom: 15px;}
+        .module-title { font-family: 'Times New Roman', serif; font-size: 1.8rem; color: #fff; margin-bottom: 10px; font-weight: normal; letter-spacing: 0.1rem;}
+        .module-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
+        
+        /* Action Indicators */
+        .action-arrow { font-size: 1.2rem; color: var(--border-dim); align-self: flex-end; transition: color 0.3s;}
+        .module-card:hover .action-arrow { color: var(--border-active); }
+
+        .kill-switch:hover { border-color: var(--accent-red); box-shadow: inset 0 0 20px rgba(211, 47, 47, 0.1);}
+        .kill-switch:hover .module-header { color: var(--accent-red); }
+        .kill-switch:hover .action-arrow { color: var(--accent-red); }
+
+    </style>
 </head>
 <body>
 
-    <div class="vn-bg-watermark"></div>
-
-    <div id="splash-layer" class="active-layer">
-        <div class="classification">[ RESTRICTED // VINDEX_NETWORK ]</div>
-        <div class="terminal-loader">
-            <span id="terminal-text"></span><span class="cursor"></span>
+    <aside class="sidebar">
+        <div class="brand">
+            <h1>VOX DEI</h1>
+            <p>VINDEX NETWORK</p>
         </div>
-        <button id="initialize-btn" class="tactical-btn hidden">> INITIALIZE</button>
-    </div>
 
-    <div id="auth-layer" class="hidden-layer">
-        <div class="auth-terminal">
-            <div class="classification">[ NSA_CORE_ACCESS_LOG ]</div>
+        <div class="nav-label">[ OPERATIONAL THEATERS ]</div>
+        <div class="nav-item active">> THEATER ALPHA</div>
+        <div class="nav-item">> THEATER BRAVO</div>
+        <div class="nav-item">> ARCHIVE</div>
+        
+        <div style="flex-grow: 1;"></div> <div class="nav-item" style="color: var(--accent-red); font-size: 0.7rem;">[ DISCONNECT ]</div>
+    </aside>
 
-            <div class="roman-header">
-                <h1>VOX DEI</h1>
-                <p>VERITAS . LIBERTAS . IUSTITIA</p>
+    <main class="main-panel">
+        
+        <header class="top-hud">
+            <div class="hud-stat">
+                <div class="status-dot"></div>
+                <span id="user-display">OP: UNAUTHORIZED</span>
+            </div>
+            <div class="hud-stat" style="color: var(--text-dim);">
+                [ UPLINK: LOCAL SECURE ] | [ CLOCK: <span id="time-display">00:00:00</span> ]
+            </div>
+        </header>
+
+        <div class="bento-grid">
+            
+            <div class="module-card card-large">
+                <div>
+                    <div class="module-header">[ PRIMARY OFFENSE ]</div>
+                    <div class="module-title">PROVE_IT ENGINE</div>
+                    <div class="module-desc">Motion generation and Factual Impossibility builder. Audit chain of custody. Cross-reference sworn testimony against physical evidence records.</div>
+                </div>
+                <div class="action-arrow">→</div>
             </div>
 
-            <div id="auth-selection">
-                <button id="btn-login" class="auth-btn">> LOG IN</button>
-                <button id="btn-new-candidate" class="auth-btn">> NEW CANDIDATE</button>
+            <div class="module-card card-wide">
+                <div>
+                    <div class="module-header">[ DAMAGE METRICS ]</div>
+                    <div class="module-title">ECONOMIC LEDGER</div>
+                    <div class="module-desc">Real-time quantification of civil damages. Tracks lost wages, seized property, and operational costs for leverage application.</div>
+                </div>
+                <div class="action-arrow">→</div>
             </div>
 
-            <form id="login-form" class="hidden-form">
-                <div class="input-block">
-                    <label>[ IDENTITY_NODE ]</label>
-                    <input type="text" id="login-user" autocomplete="off" required>
+            <div class="module-card card-tall">
+                <div>
+                    <div class="module-header">[ DOCTRINE ]</div>
+                    <div class="module-title">VINDEX F.M.</div>
+                    <div class="module-desc">Standard operating procedures for pro se defense. Case law library, statute auditing, and Rules of Engagement.</div>
                 </div>
-                <div class="input-block">
-                    <label>[ PASSPHRASE ]</label>
-                    <input type="password" id="login-pass" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="back-btn">< BACK</button>
-                    <button type="submit" class="submit-btn">> AUTHENTICATE</button>
-                </div>
-                <div id="login-error" class="error-text"></div>
-            </form>
+                <div class="action-arrow">→</div>
+            </div>
 
-            <form id="register-form" class="hidden-form">
-                <div class="input-block">
-                    <label>[ NEW_IDENTITY_NODE ]</label>
-                    <input type="text" id="reg-user" autocomplete="off" required>
+            <div class="module-card card-standard kill-switch">
+                <div>
+                    <div class="module-header">[ TACTICAL INVERT ]</div>
+                    <div class="module-title">ARBITRATION</div>
                 </div>
-                <div class="input-block">
-                    <label>[ PASSPHRASE ]</label>
-                    <input type="password" id="reg-pass" required>
+                <div class="action-arrow">→</div>
+            </div>
+
+            <div class="module-card card-standard">
+                <div>
+                    <div class="module-header">[ TITLE 18 SEC 242 ]</div>
+                    <div class="module-title">COLOR OF LAW</div>
                 </div>
-                <div class="input-block">
-                    <label>[ VERIFY_PASSPHRASE ]</label>
-                    <input type="password" id="reg-pass-verify" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="back-btn">< BACK</button>
-                    <button type="submit" class="submit-btn">> ENCRYPT & STORE</button>
-                </div>
-                <div id="reg-error" class="error-text"></div>
-            </form>
+                <div class="action-arrow">→</div>
+            </div>
+
         </div>
-    </div>
+    </main>
 
-    <script src="script.js"></script>
+    <script>
+        // Set the Operator name from local storage if it exists
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedUser = localStorage.getItem("vindex_user");
+            if (savedUser) {
+                document.getElementById("user-display").textContent = "OP: " + savedUser.toUpperCase();
+            }
+
+            // Simple real-time clock for the HUD
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById("time-display").textContent = now.toLocaleTimeString('en-US', { hour12: false });
+            }, 1000);
+        });
+    </script>
+
 </body>
 </html>
