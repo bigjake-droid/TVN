@@ -4,114 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Vindex | Command Center</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --bg-dark: #030507;
-            --border-dim: #1a2b3c;
-            --border-active: #d4af37; 
-            --text-dim: #4a6b8c;
-            --text-main: #8c9b9d;
-            --accent-red: #d32f2f;
-            --accent-green: #00ff00;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Courier New', Courier, monospace;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            position: relative;
-        }
-
-        /* Radar Canvas Background */
-        #radar-map {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; pointer-events: none;
-        }
-
-        body::after {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 100; background-size: 100% 2px, 3px 100%; pointer-events: none;
-        }
-
-        /* Desktop Layout */
-        .sidebar {
-            width: 250px; border-right: 1px solid var(--border-dim); padding: 20px;
-            display: flex; flex-direction: column; z-index: 10;
-            background: rgba(3, 5, 7, 0.85); backdrop-filter: blur(5px);
-        }
-
-        .main-panel {
-            flex-grow: 1; display: flex; flex-direction: column; z-index: 10;
-            padding: 20px; overflow-y: auto;
-        }
-
-        /* Animated Logo */
-        .brand { margin-bottom: 40px; text-align: center; }
-        .brand h1 { 
-            font-family: 'Times New Roman', Times, serif; color: #e0e0e0; letter-spacing: 0.3rem; font-weight: normal;
-            animation: pulse-glow 3s infinite alternate; 
-        }
-        .brand p { font-size: 0.7rem; color: var(--border-active); letter-spacing: 0.2rem; }
-        @keyframes pulse-glow { 0% { text-shadow: 0 0 5px rgba(212, 175, 55, 0.2); } 100% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.8); color: #fff; } }
-
-        /* Navigation */
-        .nav-label { font-size: 0.7rem; color: var(--text-dim); margin-bottom: 10px; letter-spacing: 0.1rem; }
-        .nav-item {
-            padding: 15px 10px; border: 1px solid transparent; color: var(--text-main); cursor: pointer;
-            margin-bottom: 10px; transition: all 0.3s; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.1rem;
-        }
-        .nav-item:hover, .nav-item.active { border-color: var(--border-dim); background: rgba(26, 43, 60, 0.2); color: #fff; border-left: 3px solid var(--border-active); }
-
-        /* Global HUD */
-        .top-hud { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-dim); margin-bottom: 20px; }
-        .hud-stat { font-size: 0.8rem; letter-spacing: 0.1rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;}
-        .status-dot { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green);}
-
-        /* Bento Grid (Desktop) */
-        .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(180px, auto); gap: 20px; }
-        .module-card {
-            background: rgba(10, 15, 20, 0.7); border: 1px solid var(--border-dim); padding: 20px;
-            display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;
-            transition: all 0.3s ease; position: relative; overflow: hidden; backdrop-filter: blur(4px);
-        }
-        .module-card:hover { border-color: var(--border-active); box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.05); transform: translateY(-2px); background: rgba(15, 20, 25, 0.9); }
-
-        .card-large { grid-column: span 2; grid-row: span 2; } 
-        .card-wide { grid-column: span 2; grid-row: span 1; }  
-        .card-tall { grid-column: span 1; grid-row: span 2; }  
-        .card-standard { grid-column: span 1; grid-row: span 1; } 
-
-        .module-header { font-size: 0.85rem; color: var(--border-active); letter-spacing: 0.2rem; margin-bottom: 15px;}
-        .module-title { font-family: 'Times New Roman', serif; font-size: clamp(1.2rem, 3vw, 1.8rem); color: #fff; margin-bottom: 10px; font-weight: normal; letter-spacing: 0.1rem;}
-        .module-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
-        .action-arrow { font-size: 1.2rem; color: var(--border-dim); align-self: flex-end; transition: color 0.3s; margin-top: 10px;}
-        
-        .module-card:hover .action-arrow { color: var(--border-active); }
-        .kill-switch:hover { border-color: var(--accent-red); box-shadow: inset 0 0 20px rgba(211, 47, 47, 0.1);}
-        .kill-switch:hover .module-header, .kill-switch:hover .action-arrow { color: var(--accent-red); }
-
-        /* MOBILE RESPONSIVE FIX */
-        @media (max-width: 900px) {
-            body { flex-direction: column; height: auto; min-height: 100vh; overflow-y: auto; }
-            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-dim); padding: 15px; }
-            .brand { margin-bottom: 15px; }
-            .brand h1 { font-size: 2rem; }
-            .nav-item { display: inline-block; padding: 10px; margin: 0 5px 5px 0; font-size: 0.75rem; }
-            .main-panel { padding: 15px; overflow-y: visible; }
-            .bento-grid { display: flex; flex-direction: column; gap: 15px; }
-            .card-large, .card-wide, .card-tall, .card-standard { width: 100%; min-height: 150px; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -129,7 +22,7 @@
             <div class="nav-item">> ARCHIVE</div>
         </div>
         <div style="flex-grow: 1;"></div> 
-        <div class="nav-item" style="color: var(--accent-red); font-size: 0.7rem; border: none; padding-left: 0;" onclick="localStorage.removeItem('vindex_user'); window.location.href='index.html';">[ DISCONNECT ]</div>
+        <div class="nav-item disconnect-btn" id="btn-disconnect">[ DISCONNECT ]</div>
     </aside>
 
     <main class="main-panel">
@@ -138,48 +31,54 @@
                 <div class="status-dot"></div>
                 <span id="user-display">OP: UNAUTHORIZED</span>
             </div>
-            <div class="hud-stat" style="color: var(--text-dim);">
+            <div class="hud-stat hud-time">
                 [ UPLINK: SECURE ] | <span id="time-display">00:00:00</span>
             </div>
         </header>
 
         <div class="bento-grid">
-            <div class="module-card card-large">
+            <div class="module-card card-large box-blue">
                 <div>
                     <div class="module-header">[ PRIMARY OFFENSE ]</div>
                     <div class="module-title">PROVE_IT ENGINE</div>
-                    <div class="module-desc">Motion generation and Factual Impossibility builder. Audit chain of custody. Cross-reference sworn testimony against physical evidence records.</div>
+                    <div class="module-desc">
+                        Motion generation and <span class="anim-blue">Factual Impossibility</span> builder. Audit chain of custody. Cross-reference sworn testimony against physical evidence records.
+                    </div>
                 </div>
                 <div class="action-arrow">→</div>
             </div>
 
-            <div class="module-card card-wide">
+            <div class="module-card card-wide box-gold">
                 <div>
                     <div class="module-header">[ DAMAGE METRICS ]</div>
                     <div class="module-title">ECONOMIC LEDGER</div>
-                    <div class="module-desc">Real-time quantification of civil damages. Tracks lost wages, seized property, and operational costs.</div>
+                    <div class="module-desc">
+                        Real-time quantification of civil damages. Tracks <span class="anim-red">lost wages</span>, seized property, and operational costs.
+                    </div>
                 </div>
                 <div class="action-arrow">→</div>
             </div>
 
-            <div class="module-card card-tall">
+            <div class="module-card card-tall box-slate">
                 <div>
                     <div class="module-header">[ DOCTRINE ]</div>
                     <div class="module-title">VINDEX F.M.</div>
-                    <div class="module-desc">Standard operating procedures for pro se defense. Case law library and statute auditing.</div>
+                    <div class="module-desc">
+                        Standard operating procedures for pro se defense. Case law library and <span class="anim-blue">statute auditing</span>.
+                    </div>
                 </div>
                 <div class="action-arrow">→</div>
             </div>
 
-            <div class="module-card card-standard kill-switch">
+            <div class="module-card card-standard box-red">
                 <div>
                     <div class="module-header">[ TACTICAL INVERT ]</div>
-                    <div class="module-title">ARBITRATION</div>
+                    <div class="module-title"><span class="anim-red">ARBITRATION</span></div>
                 </div>
                 <div class="action-arrow">→</div>
             </div>
 
-            <div class="module-card card-standard">
+            <div class="module-card card-standard box-green">
                 <div>
                     <div class="module-header">[ 18 U.S.C. § 242 ]</div>
                     <div class="module-title">COLOR OF LAW</div>
@@ -189,77 +88,6 @@
         </div>
     </main>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const savedUser = localStorage.getItem("vindex_user");
-            if (savedUser) {
-                document.getElementById("user-display").textContent = "OP: " + savedUser.toUpperCase();
-            } else {
-                window.location.href = "index.html"; // Kicks unauthorized users back out
-            }
-
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById("time-display").textContent = now.toLocaleTimeString('en-US', { hour12: false });
-            }, 1000);
-        });
-
-        const canvas = document.getElementById('radar-map');
-        const ctx = canvas.getContext('2d');
-        let width, height;
-        const agents = [];
-
-        function resizeCanvas() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        }
-        
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        function spawnAgent() {
-            agents.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                radius: 0,
-                maxRadius: Math.random() * 50 + 20, 
-                alpha: 0.8
-            });
-            setTimeout(spawnAgent, Math.random() * 2500 + 800); 
-        }
-
-        function drawMap() {
-            ctx.clearRect(0, 0, width, height);
-            
-            ctx.strokeStyle = 'rgba(26, 43, 60, 0.15)'; 
-            ctx.lineWidth = 1;
-            for(let i = 0; i < width; i += 100) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke(); }
-            for(let i = 0; i < height; i += 100) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke(); }
-
-            agents.forEach((agent, index) => {
-                ctx.beginPath();
-                ctx.arc(agent.x, agent.y, agent.radius, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(212, 175, 55, ${agent.alpha})`; 
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.arc(agent.x, agent.y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(212, 175, 55, ${agent.alpha})`;
-                ctx.fill();
-
-                agent.radius += 0.3;
-                agent.alpha -= 0.005;
-
-                if (agent.alpha <= 0) agents.splice(index, 1);
-            });
-            requestAnimationFrame(drawMap);
-        }
-
-        spawnAgent();
-        drawMap();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
