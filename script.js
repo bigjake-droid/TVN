@@ -1,42 +1,132 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const terminalTextElement = document.getElementById("terminal-text");
-    const splashContainer = document.getElementById("splash-container");
-    const initButton = document.getElementById("initialize-btn");
-    
-    const bootSequence = "> INITIALIZING PROVE_IT ENGINE...";
-    let index = 0;
-    const typingSpeed = 50; 
+    // Splash Elements
+    const terminalText = document.getElementById("terminal-text");
+    const initBtn = document.getElementById("initialize-btn");
+    const splashLayer = document.getElementById("splash-layer");
+    const authLayer = document.getElementById("auth-layer");
 
+    // Auth Elements
+    const authSelection = document.getElementById("auth-selection");
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
+    
+    // Boot Sequence Logic
+    const bootSequence = "> FETCHING ENCRYPTED PAYLOAD...";
+    let index = 0;
+    
     function typeText() {
         if (index < bootSequence.length) {
-            terminalTextElement.textContent += bootSequence.charAt(index);
+            terminalText.textContent += bootSequence.charAt(index);
             index++;
-            setTimeout(typeText, typingSpeed);
+            setTimeout(typeText, 40);
         } else {
-            // Typing is complete. Change text and reveal the manual override button.
             setTimeout(() => {
-                terminalTextElement.textContent = "> SYSTEM READY. AWAITING COMMAND.";
-                initButton.classList.remove("hidden");
-            }, 600);
+                terminalText.textContent = "> PAYLOAD SECURED. SYSTEM READY.";
+                initBtn.classList.remove("hidden");
+            }, 500);
         }
     }
+    setTimeout(typeText, 800);
 
-    // When the user clicks the INITIALIZE button
-    initButton.addEventListener("click", () => {
-        // Change terminal output to show action
-        terminalTextElement.textContent = "> EXECUTING PROTOCOL...";
-        initButton.classList.add("hidden"); // Hide the button
-        
-        // Trigger the CSS fade out
-        splashContainer.classList.add("fade-out");
-        
-        // Wait for the CSS fade animation to finish (800ms) before redirecting
+    // Transition from Splash to Auth
+    initBtn.addEventListener("click", () => {
+        splashLayer.classList.add("fade-out");
         setTimeout(() => {
-            // When dashboard.html is ready, remove the '//' from the next line:
-            // window.location.href = "dashboard.html";
-        }, 800);
+            splashLayer.classList.replace("active-layer", "hidden-layer");
+            authLayer.classList.replace("hidden-layer", "active-layer");
+            
+            // Check if user already exists in local storage
+            if (localStorage.getItem("vindex_user")) {
+                // If they exist, auto-show the login form to save time
+                showLoginForm();
+            }
+        }, 500);
     });
 
-    // Start the boot sequence 1 second after the page loads
-    setTimeout(typeText, 1000);
+    // UI Navigation Logic
+    document.getElementById("btn-login").addEventListener("click", showLoginForm);
+    document.getElementById("btn-new-candidate").addEventListener("click", showRegisterForm);
+    
+    document.querySelectorAll(".back-btn").forEach(btn => {
+        btn.addEventListener("click", resetAuthUI);
+    });
+
+    function showLoginForm() {
+        authSelection.style.display = "none";
+        loginForm.style.display = "block";
+        registerForm.style.display = "none";
+        // Auto fill username if exists
+        const savedUser = localStorage.getItem("vindex_user");
+        if(savedUser) document.getElementById("login-user").value = savedUser;
+    }
+
+    function showRegisterForm() {
+        authSelection.style.display = "none";
+        loginForm.style.display = "none";
+        registerForm.style.display = "block";
+    }
+
+    function resetAuthUI() {
+        authSelection.style.display = "block";
+        loginForm.style.display = "none";
+        registerForm.style.display = "none";
+        document.getElementById("login-error").textContent = "";
+        document.getElementById("reg-error").textContent = "";
+    }
+
+    // REGISTRATION LOGIC
+    registerForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const user = document.getElementById("reg-user").value;
+        const pass1 = document.getElementById("reg-pass").value;
+        const pass2 = document.getElementById("reg-pass-verify").value;
+        const errorText = document.getElementById("reg-error");
+
+        if (pass1 !== pass2) {
+            errorText.textContent = "[!] PASSPHRASES DO NOT MATCH";
+            return;
+        }
+
+        // Save to Local Device Storage
+        localStorage.setItem("vindex_user", user);
+        localStorage.setItem("vindex_pass", pass1); // Stored locally on device
+        
+        const submitBtn = registerForm.querySelector(".submit-btn");
+        submitBtn.textContent = "> ENCRYPTING...";
+        submitBtn.style.color = "#00ff00";
+
+        setTimeout(() => {
+            // Forward to Command Center
+            window.location.href = "command-center.html";
+        }, 1000);
+    });
+
+    // LOGIN LOGIC
+    loginForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const user = document.getElementById("login-user").value;
+        const pass = document.getElementById("login-pass").value;
+        const errorText = document.getElementById("login-error");
+
+        const savedUser = localStorage.getItem("vindex_user");
+        const savedPass = localStorage.getItem("vindex_pass");
+
+        if (!savedUser) {
+            errorText.textContent = "[!] NO CANDIDATE RECORD FOUND ON DEVICE";
+            return;
+        }
+
+        if (user === savedUser && pass === savedPass) {
+            const submitBtn = loginForm.querySelector(".submit-btn");
+            submitBtn.textContent = "> ACCESS GRANTED";
+            submitBtn.style.color = "#00ff00";
+            
+            setTimeout(() => {
+                // Forward to Command Center
+                window.location.href = "command-center.html";
+            }, 1000);
+        } else {
+            errorText.textContent = "[!] INVALID CREDENTIALS";
+        }
+    });
 });
