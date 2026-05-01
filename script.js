@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // window.location.href = "dashboard.html";
             
             // For now, just change the text to show it worked
-            terminalTextElement.textContent = "> SYSTEM READY. STANDBY.";
+            terminalTextElement.textContent = "> SYSTEM READY. ROUTING...";
         }, 800);
     }
 
