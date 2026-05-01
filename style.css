@@ -1,135 +1,91 @@
-/* Base Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-body, html {
-    height: 100%;
-    background-color: #050505; 
-    font-family: 'Courier New', Courier, monospace; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    color: #d1d5db; 
-}
-
-.background-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, rgba(31, 31, 31, 0.8) 0%, rgba(5, 5, 5, 1) 100%);
-    z-index: 0;
-}
-
-.splash-container {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeIn 1.5s ease-out forwards;
-    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-    width: 100%;
-    padding: 0 15px; /* Keeps text off the absolute edges of the screen */
-}
-
-.splash-container.fade-out {
-    opacity: 0;
-    transform: scale(0.95);
-}
-
-.vn-logo {
-    width: clamp(120px, 30vw, 180px); /* Scales logo slightly on mobile */
-    height: auto;
-    margin-bottom: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8); 
-}
-
-.app-title {
-    /* Fluid typography: Min 1.5rem, scales with view width, Max 2.8rem */
-    font-size: clamp(1.5rem, 8vw, 2.8rem);
-    font-weight: 900;
-    letter-spacing: clamp(0.2rem, 2vw, 0.5rem); /* Shrinks spacing on mobile */
-    text-transform: uppercase;
-    font-family: 'Arial', sans-serif;
-    color: #ffffff;
-    margin-bottom: 0.5rem;
-    width: 100%;
-}
-
-.motto {
-    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
-    letter-spacing: clamp(0.1rem, 1vw, 0.25rem);
-    color: #8c8c8c;
-    text-transform: uppercase;
-    margin-bottom: 3.5rem;
-    font-weight: 600;
-}
-
-.terminal-loader {
-    font-size: 1rem;
-    color: #a3a3a3;
-    text-align: center;
-    width: 100%;
-    max-width: 320px;
-    border-top: 1px solid #333;
-    padding-top: 1rem;
-    display: flex;
-    justify-content: center; /* Centers the terminal text */
-    align-items: center;
-    min-height: 40px; 
-}
-
-.cursor {
-    display: inline-block;
-    width: 10px;
-    height: 18px;
-    background-color: #d32f2f; 
-    margin-left: 6px;
-    animation: blink 1s step-end infinite;
-}
-
-/* Tactical Button Styling */
-.tactical-btn {
-    margin-top: 2rem;
-    padding: 12px 35px;
-    background-color: transparent;
-    border: 1px solid #4a4a4a;
-    color: #ffffff;
+body {
+    background-color: #030507;
+    color: #8c9b9d;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 1rem;
-    letter-spacing: 0.2rem;
-    cursor: pointer;
-    transition: all 0.4s ease;
-    opacity: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
 }
 
-.tactical-btn:hover, .tactical-btn:active {
-    border-color: #d32f2f; /* Crimson activation */
-    background-color: rgba(211, 47, 47, 0.1);
-    box-shadow: 0 0 15px rgba(211, 47, 47, 0.3);
+/* VN Logo Background Watermark */
+.vn-bg-watermark {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url('vinnet-512.jpg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15; /* Keeps it strictly as a dark shadow */
+    z-index: 0;
+    filter: grayscale(100%) contrast(120%);
 }
 
-.tactical-btn.hidden {
-    opacity: 0;
+/* CRT Scanline Effect Overlay */
+body::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 10;
+    background-size: 100% 2px, 3px 100%;
     pointer-events: none;
-    transform: translateY(10px);
 }
 
-@keyframes fadeIn {
-    to { opacity: 1; transform: translateY(0); }
-}
+/* Layer Management */
+.active-layer { display: flex; flex-direction: column; align-items: center; z-index: 5; animation: fadeIn 1s ease-in forwards; width: 100%; }
+.hidden-layer { display: none; }
+.fade-out { animation: fadeOut 0.5s ease-out forwards; }
 
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+/* Splash Screen Elements */
+.terminal-loader {
+    font-size: clamp(0.9rem, 4vw, 1.2rem);
+    color: #a3a3a3;
+    margin-bottom: 2rem;
+    min-height: 30px;
+    text-shadow: 0 0 5px rgba(255,255,255,0.2);
 }
+.cursor {
+    display: inline-block; width: 10px; height: 18px; background-color: #d32f2f; margin-left: 6px; animation: blink 1s step-end infinite;
+}
+.tactical-btn {
+    padding: 12px 35px; background: transparent; border: 1px solid #4a4a4a; color: #fff; font-family: 'Courier New', Courier, monospace; font-size: 1rem; letter-spacing: 0.2rem; cursor: pointer; transition: all 0.3s;
+}
+.tactical-btn:hover { border-color: #d32f2f; color: #d32f2f; box-shadow: 0 0 15px rgba(211, 47, 47, 0.3); }
+.hidden { opacity: 0; pointer-events: none; }
+
+/* Auth Terminal Box */
+.auth-terminal {
+    width: 90%; max-width: 450px; padding: 40px; border: 1px solid #1a2b3c; background: rgba(5, 10, 15, 0.85); box-shadow: 0 0 30px rgba(0, 0, 0, 0.9); position: relative; z-index: 5; backdrop-filter: blur(5px);
+}
+.classification { font-size: 0.75rem; letter-spacing: 0.2rem; color: #d32f2f; margin-bottom: 30px; text-align: center; text-transform: uppercase; }
+.roman-header { text-align: center; margin-bottom: 30px; }
+.roman-header h1 { font-family: 'Times New Roman', Times, serif; font-size: 3rem; font-weight: normal; color: #e0e0e0; letter-spacing: 0.5rem; margin-bottom: 10px; text-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
+.roman-header p { font-size: 0.75rem; letter-spacing: 0.3rem; color: #5a6b7c; }
+
+/* Form Elements */
+.hidden-form { display: none; }
+.input-block { margin-bottom: 25px; }
+.input-block label { display: block; font-size: 0.75rem; letter-spacing: 0.15rem; margin-bottom: 8px; color: #4a6b8c; }
+.input-block input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #2a3b4c; color: #fff; font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; padding: 10px 5px; outline: none; text-align: center; letter-spacing: 0.2rem; transition: 0.3s; }
+.input-block input:focus { border-bottom: 1px solid #8c9b9d; }
+
+/* Buttons */
+.auth-btn, .submit-btn, .back-btn {
+    width: 100%; background: transparent; border: 1px solid #2a3b4c; color: #8c9b9d; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; letter-spacing: 0.2rem; padding: 15px; cursor: pointer; margin-top: 15px; transition: 0.3s; text-transform: uppercase;
+}
+.auth-btn:hover, .submit-btn:hover { border-color: #e0e0e0; color: #030507; background: #e0e0e0; }
+.form-actions { display: flex; gap: 10px; }
+.back-btn { width: 30%; border-color: #4a4a4a; color: #4a4a4a; }
+.back-btn:hover { border-color: #d32f2f; color: #d32f2f; }
+.submit-btn { width: 70%; }
+
+.error-text { color: #d32f2f; font-size: 0.8rem; text-align: center; margin-top: 15px; min-height: 20px;}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
