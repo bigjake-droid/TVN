@@ -1,132 +1,84 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Splash Elements
-    const terminalText = document.getElementById("terminal-text");
-    const initBtn = document.getElementById("initialize-btn");
-    const splashLayer = document.getElementById("splash-layer");
-    const authLayer = document.getElementById("auth-layer");
-
-    // Auth Elements
-    const authSelection = document.getElementById("auth-selection");
-    const loginForm = document.getElementById("login-form");
-    const registerForm = document.getElementById("register-form");
-    
-    // Boot Sequence Logic
-    const bootSequence = "> FETCHING ENCRYPTED PAYLOAD...";
-    let index = 0;
-    
-    function typeText() {
-        if (index < bootSequence.length) {
-            terminalText.textContent += bootSequence.charAt(index);
-            index++;
-            setTimeout(typeText, 40);
-        } else {
-            setTimeout(() => {
-                terminalText.textContent = "> PAYLOAD SECURED. SYSTEM READY.";
-                initBtn.classList.remove("hidden");
-            }, 500);
-        }
-    }
-    setTimeout(typeText, 800);
-
-    // Transition from Splash to Auth
-    initBtn.addEventListener("click", () => {
-        splashLayer.classList.add("fade-out");
-        setTimeout(() => {
-            splashLayer.classList.replace("active-layer", "hidden-layer");
-            authLayer.classList.replace("hidden-layer", "active-layer");
-            
-            // Check if user already exists in local storage
-            if (localStorage.getItem("vindex_user")) {
-                // If they exist, auto-show the login form to save time
-                showLoginForm();
-            }
-        }, 500);
-    });
-
-    // UI Navigation Logic
-    document.getElementById("btn-login").addEventListener("click", showLoginForm);
-    document.getElementById("btn-new-candidate").addEventListener("click", showRegisterForm);
-    
-    document.querySelectorAll(".back-btn").forEach(btn => {
-        btn.addEventListener("click", resetAuthUI);
-    });
-
-    function showLoginForm() {
-        authSelection.style.display = "none";
-        loginForm.style.display = "block";
-        registerForm.style.display = "none";
-        // Auto fill username if exists
-        const savedUser = localStorage.getItem("vindex_user");
-        if(savedUser) document.getElementById("login-user").value = savedUser;
+    // 1. Auth & HUD Logic
+    const savedUser = localStorage.getItem("vindex_user");
+    if (savedUser) {
+        document.getElementById("user-display").textContent = "OP: " + savedUser.toUpperCase();
+    } else {
+        // Kick out unauthorized access to the splash screen
+        window.location.href = "index.html"; 
     }
 
-    function showRegisterForm() {
-        authSelection.style.display = "none";
-        loginForm.style.display = "none";
-        registerForm.style.display = "block";
-    }
-
-    function resetAuthUI() {
-        authSelection.style.display = "block";
-        loginForm.style.display = "none";
-        registerForm.style.display = "none";
-        document.getElementById("login-error").textContent = "";
-        document.getElementById("reg-error").textContent = "";
-    }
-
-    // REGISTRATION LOGIC
-    registerForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const user = document.getElementById("reg-user").value;
-        const pass1 = document.getElementById("reg-pass").value;
-        const pass2 = document.getElementById("reg-pass-verify").value;
-        const errorText = document.getElementById("reg-error");
-
-        if (pass1 !== pass2) {
-            errorText.textContent = "[!] PASSPHRASES DO NOT MATCH";
-            return;
-        }
-
-        // Save to Local Device Storage
-        localStorage.setItem("vindex_user", user);
-        localStorage.setItem("vindex_pass", pass1); // Stored locally on device
-        
-        const submitBtn = registerForm.querySelector(".submit-btn");
-        submitBtn.textContent = "> ENCRYPTING...";
-        submitBtn.style.color = "#00ff00";
-
-        setTimeout(() => {
-            // Forward to Command Center
-            window.location.href = "command-center.html";
-        }, 1000);
+    // Disconnect Button Logic
+    document.getElementById("btn-disconnect").addEventListener("click", () => {
+        localStorage.removeItem("vindex_user");
+        window.location.href = "index.html";
     });
 
-    // LOGIN LOGIC
-    loginForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const user = document.getElementById("login-user").value;
-        const pass = document.getElementById("login-pass").value;
-        const errorText = document.getElementById("login-error");
-
-        const savedUser = localStorage.getItem("vindex_user");
-        const savedPass = localStorage.getItem("vindex_pass");
-
-        if (!savedUser) {
-            errorText.textContent = "[!] NO CANDIDATE RECORD FOUND ON DEVICE";
-            return;
-        }
-
-        if (user === savedUser && pass === savedPass) {
-            const submitBtn = loginForm.querySelector(".submit-btn");
-            submitBtn.textContent = "> ACCESS GRANTED";
-            submitBtn.style.color = "#00ff00";
-            
-            setTimeout(() => {
-                // Forward to Command Center
-                window.location.href = "command-center.html";
-            }, 1000);
-        } else {
-            errorText.textContent = "[!] INVALID CREDENTIALS";
-        }
-    });
+    // Real-time HUD Clock
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById("time-display").textContent = now.toLocaleTimeString('en-US', { hour12: false });
+    }, 1000);
 });
+
+// 2. Global Agent Radar System (Canvas Background)
+const canvas = document.getElementById('radar-map');
+const ctx = canvas.getContext('2d');
+let width, height;
+const agents = [];
+
+function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function spawnAgent() {
+    agents.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: 0,
+        maxRadius: Math.random() * 50 + 20, 
+        alpha: 1.0 // Bright spawn
+    });
+    setTimeout(spawnAgent, Math.random() * 2000 + 500); 
+}
+
+function drawMap() {
+    ctx.clearRect(0, 0, width, height);
+    
+    // Brighter Tactical Grid
+    ctx.strokeStyle = 'rgba(74, 107, 140, 0.4)'; 
+    ctx.lineWidth = 1;
+    for(let i = 0; i < width; i += 100) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke(); }
+    for(let i = 0; i < height; i += 100) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke(); }
+
+    agents.forEach((agent, index) => {
+        // Expanding outer ring
+        ctx.beginPath();
+        ctx.arc(agent.x, agent.y, agent.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(212, 175, 55, ${agent.alpha})`; 
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        // Inner core
+        ctx.beginPath();
+        ctx.arc(agent.x, agent.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(212, 175, 55, ${agent.alpha})`;
+        ctx.fill();
+
+        agent.radius += 0.3;
+        agent.alpha -= 0.002; // Slower fade
+
+        if (agent.alpha <= 0) agents.splice(index, 1);
+    });
+    requestAnimationFrame(drawMap);
+}
+
+// Initialize Radar
+spawnAgent();
+drawMap();
